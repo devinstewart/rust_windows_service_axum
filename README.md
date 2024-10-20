@@ -3,16 +3,29 @@ This is a simple example of how to run a Rust Axum web server as a Windows servi
 
 ## My Setup
 - Windows Server 2022
-- Rust (Installed by first downloading and installing the [Microsoft C++ build tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/), then downloading running `RUSTUP-INIT.exe`)
+- Rust (Installed by first downloading and installing the [Microsoft C++ build tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/), then downloading and running `RUSTUP-INIT.exe`)
 - [WiX Toolset 3.14.1](https://github.com/wixtoolset/wix3/releases/tag/wix3141rtm)
 - `cargo-wix` (Installed by running `cargo install cargo-wix`)
 
 ## Building the MSI Installer
-Run `cargo wix -C -ext -C WixFirewallExtension -L -ext -L WixFirewallExtension` in the root of the project. This will create an MSI installer in the `target\wix` directory.
+Run `cargo wix` or `cargo wix --nocapture` to build the MSI installer. The installer will be created in the `target\wix` directory.
 
-The `-C -ext -C WixFirewallExtension -L -ext -L WixFirewallExtension` flags are required to include the WiX Firewall Extension in the MSI installer. This is needed to add a firewall rule to allow incoming traffic on the port the web server is running on.
+The `--nocapture` flag will show the output of cargo and the WiX compiler and linker.
 
-Both `-C` and `-L` flags are required to include the extension in the compiler `light.exe` and the linker `candle.exe`.
+**Please Note:**
+
+In the `Cargo.toml` file, this section is used to create the MSI installer:
+```toml
+[package.metadata.wix]
+compiler-args = ["-ext", "WixFirewallExtension"]
+linker-args = ["-ext", "WixFirewallExtension"]
+```
+This is needed to pass the `WixFirewallExtension` to the WiX compiler and linker to create the firewall rule.
+
+If this section is not included, to build the MSI installer this is how to pass the `WixFirewallExtension` to the WiX compiler and linker:
+```shell
+cargo wix  -C -ext -C WixFirewallExtension -L -ext -L WixFirewallExtension
+```
 
 ## Installing the MSI Installer
 Run the MSI installer created in the `target\wix` directory. The installer will install the service and start it. The service will be set to start automatically on boot.
